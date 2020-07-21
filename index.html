@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Japans - Genki Training</title>
+	<meta charset="utf-8" />
+	<script type="text/javascript" src="hulp_functies.js"></script>
+	<script type="text/javascript" src="state_owner.js"></script>
+	<script type="text/javascript" src="event_broker.js"></script>
+	<script type="text/javascript" src="genki_ht3.js"></script>
+	<script type="text/javascript" src="genki_ht4.js"></script>
+	<script type="text/javascript" src="genki_ht5.js"></script>
+	<script type="text/javascript" src="genki_ht6.js"></script>
+	<script type="text/javascript" src="genki_ht7.js"></script>
+	<script type="text/javascript" src="genki_ht8.js"></script>
+	<script>
+	function initeuh() {
+		uncheck_all_checkboxes();
+		init_menu_view();
+		init_settings_view();
+		init_explanation_view();
+		init_qanda_view();
+		init_controls_view();
+	}
+
+	// Firefox remembers my checkboxes across reloads :(
+	// That would give us the wrong state. Alternatively, we
+	// could check the checkboxes and set the state but that's
+	// just a lot of work.
+	function uncheck_all_checkboxes() {
+		var input_elements = document.getElementsByTagName('input');
+		for(var i = 0; i < input_elements.length; i++) {
+			if(input_elements[i].type == 'checkbox') { input_elements[i].checked = false; }
+		}
+	}
+
+	function init_menu_view() {
+
+	}
+
+	function init_settings_view() {
+		subscribe_to_event("EVENT_TOGGLE_SETTINGS_VIEW", function(event) {
+			toggle_display("instellingen");
+		});
+		set_state("dictionaries", {});
+		set_state("question_type", document.getElementById("type_of_question").value);
+		set_state("answer_type", document.getElementById("type_of_answer").value);
+		set_state("speed_inter_question", document.getElementById("inter_question_break").value);
+		set_state("speed_intra_question", document.getElementById("intra_question_break").value);
+		set_state("order", document.getElementById("type_of_order").value);
+
+		subscribe_to_event("EVENT_CHAPTER_CHECKBOX", function(event) {
+			if(event["target"].checked) {
+				get_state("dictionaries")[event["name"]] = 1;
+			} else {
+				get_state("dictionaries")[event["name"]] = 0;
+			}
+		});
+
+		// TODO: Add extra events when the question or answer is changed in the settings
+		subscribe_to_event("EVENT_TYPE_OF_QUESTION_CHANGED", function(event) {
+			set_state("question_type", event["value"]);
+		});
+		subscribe_to_event("EVENT_TYPE_OF_ANSWER_CHANGED", function(event) {
+			set_state("answer_type", event["value"]);
+		});
+		// TODO: Add extra events when the timings are adjusted
+		subscribe_to_event("EVENT_INTRA_BREAK_CHANGED", function(event) {
+			var speed = event["target"].value;
+			if(Number.isInteger(speed) && speed >= 0) {
+				set_state("speed_intra_question", speed);
+			}
+		});
+		subscribe_to_event("EVENT_INTER_BREAK_CHANGED", function(event) {
+			var speed = event["target"].value;
+			if(Number.isInteger(speed) && speed >= 0) {
+				set_state("speed_inter_question", speed);
+			}
+		});
+		subscribe_to_event("EVENT_ORDER_CHANGED", function(event) {
+			set_state("order", event["value"]);
+		});
+	}
+
+	function init_explanation_view() {
+		subscribe_to_event("EVENT_TOGGLE_EXPLANATION_VIEW", function(event) {
+			toggle_display("uitleg");
+		});
+	}
+
+	function init_qanda_view() {
+		subscribe_to_event("EVENT_START_QANDA", function(event) {
+			plog("maken van dict...");
+			var dict = create_dict(get_state("order"));
+			set_state("current_dict", dict);
+			set_state("current_index", 0);
+			set_state("state", "ongoing");
+			new_event("EVENT_NEXT_QUESTION");
+		});
+		subscribe_to_event("EVENT_CONTINUE_QANDA", function(event) {
+			new_event("EVENT_NEW_QUESTION_TIME");
+		});
+		subscribe_to_event("EVENT_PAUZE_QANDA", function(event) {
+			// We just don't do anything
+		});
+		subscribe_to_event("EVENT_STOP_QANDA", function(event) {
+			set_state("current_dict", {});
+			set_state("current_index", 0);
+		});
+
+		subscribe_to_event("EVENT_NEXT_QUESTION", function(event) {
+			plog("event next question state is: " + get_state("state"));
+			if(get_state("state") != "ongoing") {
+				return;
+			}
+			var dict = get_state("current_dict");
+			plog("dict size: " + dict.length);
+			var index = get_state("current_index");
+			if(dict.length <= index) {
+				document.getElementById("vraag").innerHTML = "Afgelopen.";
+				return;
+			}
+
+			document.getElementById("vraag").innerHTML = dict[index][get_state("question_type")];
+			plog("jajajaja");
+			setTimeout(() => { new_event("EVENT_ANSWER_TIME"); }, get_state("speed_intra_question") * 1000);
+		});
+
+		subscribe_to_event("EVENT_ANSWER_TIME", function(event) {
+			plog("event answer time state is: " + get_state("state"));
+			if(get_state("state") != "ongoing") {
+				return;
+			}
+			var dict = get_state("current_dict");
+			plog("dict size: " + dict.length);
+			var index = get_state("current_index");
+			plog(index);
+			document.getElementById("antwoord").innerHTML = dict[index][get_state("answer_type")];
+			setTimeout(() => { new_event("EVENT_NEW_QUESTION_TIME"); }, get_state("speed_inter_question") * 1000);
+		});
+
+		subscribe_to_event("EVENT_NEW_QUESTION_TIME", function(event) {
+			plog("event new question state is: " + get_state("state"));
+			if(get_state("state") != "ongoing") {
+				return;
+			}
+			var dict = get_state("current_dict");
+			var index = get_state("current_index");
+			document.getElementById("antwoord").innerHTML = "&nbsp;";
+			set_state("current_index", index + 1);
+			new_event("EVENT_NEXT_QUESTION");
+		});
+	}
+
+	// TODO: Use the order variable to shuffle in a chapter or overall shuffling
+	function create_dict(order) {
+		var dict = [];
+		var dict_names = get_state("dictionaries");
+		for(var chapter_name in dict_names) {
+			if(dict_names[chapter_name] == 1) {
+				chapter_words = get_state(chapter_name);
+				if(order == "intra_random") {
+					chapter_words = shuffle(chapter_words);
+				}
+				for(var i = 0; i < chapter_words.length; i++) {
+					dict.push(chapter_words[i]);
+				}
+			}
+		}
+		if(order == "fully_random") {
+			dict = shuffle(dict);
+		}
+		return dict;
+	}
+
+	function init_controls_view() {
+		// Initieel zijn we altijd gestopt.
+		set_state("state", "stopped");
+
+		document.getElementById("start").style.display = "inline";
+		document.getElementById("continue").style.display = "none";
+		document.getElementById("stop").style.display = "none";
+		document.getElementById("pauze").style.display = "none";
+
+		subscribe_to_event("EVENT_START_QANDA", function(event) {
+			plog("someone clicked the start button, put state in ongoing");
+			set_state("state", "ongoing");
+			document.getElementById("start").style.display = "none";
+			document.getElementById("continue").style.display = "none";
+			document.getElementById("stop").style.display = "inline";
+			document.getElementById("pauze").style.display = "inline";
+		});
+
+		subscribe_to_event("EVENT_CONTINUE_QANDA", function(event) {
+			plog("someone clicked the continue button, put state in ongoing");
+			set_state("state", "ongoing");
+			document.getElementById("start").style.display = "none";
+			document.getElementById("continue").style.display = "none";
+			document.getElementById("stop").style.display = "inline";
+			document.getElementById("pauze").style.display = "inline";
+		});
+
+		subscribe_to_event("EVENT_PAUZE_QANDA", function(event) {
+			plog("someone clicked the pauze button, put state in paused");
+			set_state("state", "paused");
+			document.getElementById("start").style.display = "none";
+			document.getElementById("continue").style.display = "inline";
+			document.getElementById("stop").style.display = "inline";
+			document.getElementById("pauze").style.display = "none";
+		});
+		subscribe_to_event("EVENT_STOP_QANDA", function(event) {
+			plog("someone clicked the stop button, put state in stopped");
+			set_state("state", "stopped");
+			document.getElementById("start").style.display = "inline";
+			document.getElementById("continue").style.display = "none";
+			document.getElementById("stop").style.display = "none";
+			document.getElementById("pauze").style.display = "none";
+		});
+		
+	}
+
+	</script>
+	<link rel="stylesheet" type="text/css" href="shtijl.css">
+</head>
+<body onload="initeuh();">
+<div id="wrapper">
+	<div id="hoofding">
+		<ul id="menu">
+			<li><a href="#" onclick="new_event('EVENT_TOGGLE_SETTINGS_VIEW');">Instellingen</a></li>
+			<li><a href="#" onclick="new_event('EVENT_TOGGLE_EXPLANATION_VIEW');">Hoe werkt dit?</a></li>
+		</ul>
+	</div>
+	<div id="inhoud">
+		<div id="instellingen">
+				<label for="type_of_question">Type vraag:</label>
+					<select onchange="new_event('EVENT_TYPE_OF_QUESTION_CHANGED', {'value': this.value});" name="type_of_question" id="type_of_question">
+					<option value="nederlands">nederlands</option>
+					<option value="francais">francais</option>
+					<option value="english">english</option>
+					<option value="romaji">romaji</option>
+					<option value="hiragana">hiragana</option>
+					<option value="kanji">kanji</option>
+					</select>
+				<label for="type_of_answer">Type antwoord:</label>
+					<select onchange="new_event('EVENT_TYPE_OF_ANSWER_CHANGED', {'value': this.value});" name="type_of_answer" id="type_of_answer">
+					<option value="nederlands">nederlands</option>
+					<option value="francais">francais</option>
+					<option value="english">english</option>
+					<option value="romaji">romaji</option>
+					<option value="hiragana">hiragana</option>
+					<option value="kanji">kanji</option>
+					</select>
+				<label for="type_of_order">Volgorde van vragen:</label>
+					<select onchange="new_event('EVENT_ORDER_CHANGED', {'value': this.value});" name="type_of_order" id="type_of_order">
+					<option value="in_order">In volgorde</option>
+					<option value="intra_random">Willekeurig binnen 1 Hoofdstuk</option>
+					<option value="fully_random">Volledig willekeurig</option>
+					</select>
+				<br />
+				<label for="intra_question_break">Aantal seconden tussen antwoord en vraag:</label>
+					<input type="text" onchange="new_event('EVENT_INTRA_BREAK_CHANGED', {'target': this});" name="intra_question_break" value="10" size=4 id="intra_question_break" />
+				<br />
+				<label for="inter_question_break">Aantal seconden tussen het antwoord en een nieuwe vraag:</label>
+					<input type="text" onchange="new_event('EVENT_INTER_BREAK_CHANGED', {'target': this});" name="inter_question_break" value="5" size=4 id="inter_question_break" />
+			<div id="hoofdstukken">
+				<h3>Welke hoofdstukken wil je oefenen?</h3>
+				<ul class="hidden_bullets">
+				<li><input type="checkbox" onchange="new_event('EVENT_CHAPTER_CHECKBOX', {'name':'genki_ht3', 'target': this})" id="genki_ht3_kanji" name="genki_ht3_kanji" value="Hoofdstuk 3 Kanji" />
+				<label for="genki_ht3_kanji">Hoofdstuk 3 Kanji</label></li>
+				<li><input type="checkbox" onchange="new_event('EVENT_CHAPTER_CHECKBOX', {'name':'genki_ht4', 'target': this})" id="genki_ht4_kanji" name="genki_ht4_kanji" value="Hoofdstuk 4 Kanji" />
+				<label for="genki_ht4_kanji">Hoofdstuk 4 Kanji</label></li>
+				<li><input type="checkbox" onchange="new_event('EVENT_CHAPTER_CHECKBOX', {'name':'genki_ht5', 'target': this})" id="genki_ht5_kanji" name="genki_ht5_kanji" value="Hoofdstuk 5 Kanji" />
+				<label for="genki_ht5_kanji">Hoofdstuk 5 Kanji</label></li>
+				<li><input type="checkbox" onchange="new_event('EVENT_CHAPTER_CHECKBOX', {'name':'genki_ht6', 'target': this})" id="genki_ht6_kanji" name="genki_ht6_kanji" value="Hoofdstuk 6 Kanji" />
+				<label for="genki_ht6_kanji">Hoofdstuk 6 Kanji</label></li>
+				<li><input type="checkbox" onchange="new_event('EVENT_CHAPTER_CHECKBOX', {'name':'genki_ht7', 'target': this})" id="genki_ht7_kanji" name="genki_ht7_kanji" value="Hoofdstuk 7 Kanji" />
+				<label for="genki_ht7_kanji">Hoofdstuk 7 Kanji</label></li>
+				<li><input type="checkbox" onchange="new_event('EVENT_CHAPTER_CHECKBOX', {'name':'genki_ht8', 'target': this})" id="genki_ht8_kanji" name="genki_ht8_kanji" value="Hoofdstuk 8 Kanji" />
+				<label for="genki_ht8_kanji">Hoofdstuk 8 Kanji</label></li>
+				</ul>
+			</div>
+		</div>
+		<div id="uitleg">
+			<p>De bedoeling is dat je een "vraag" en "antwoord" selecteert in de instellingen. De vraag wordt op het scherm getoond of afgespeeld (indien geluid). Na enkele seconden komt het antwoord in beeld (of wordt dit afgespeeld indien geluid). Via de overige instellingen kan je de snelheid, het woordenboek, etcetera bepalen.</p>
+		</div>
+		<div id="vraag_en_antwoord">
+			<h1 id="vraag">Druk op start.</h1>
+			<h1 id="antwoord"></h1>
+		</div>
+		<div id="knopjes">
+			<input type="button" id="start" value="Start" onclick="new_event('EVENT_START_QANDA');" />
+			<input type="button" id="continue" value="Continue" onclick="new_event('EVENT_CONTINUE_QANDA');" />
+			<input type="button" id="pauze" value="Pauze" onclick="new_event('EVENT_PAUZE_QANDA');" />
+			<input type="button" id="stop" value="Stop" onclick="new_event('EVENT_STOP_QANDA');" />
+			<!-- TODO: Later kan je hier terug knop, next knop enzo aan toevoegen... -->
+		</div>
+	</div>
+</div>
+</body>
+</html>

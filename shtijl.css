@@ -1,0 +1,9 @@
+h1, h2, p { text-align: center; }
+h1 { font-size: 4rem; }
+#vraag { font-weight: normal; }
+#antwoord { font-size: 10rem; font-weight: normal; }
+#menu li { display: inline; }
+#wrapper { width: 960px; margin: 0 auto; }
+#instellingen, #uitleg, #over { display: none; }
+.hidden_bullets li { list-style: none; }
+
