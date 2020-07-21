@@ -37,7 +37,7 @@ set_state("genki_ht8", [
 		"english": "to serve",
 		"romaji": ["kaishain no <i>shi</i>", "tsuka"],
 		"hiragana": ["し", "つか"],
-		"kanji": "社"
+		"kanji": "仕"
 	},
 	{
 		"nederlands": "een ding",
