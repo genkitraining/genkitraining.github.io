@@ -66,13 +66,13 @@
 		// TODO: Add extra events when the timings are adjusted
 		subscribe_to_event("EVENT_INTRA_BREAK_CHANGED", function(event) {
 			var speed = event["target"].value;
-			if(Number.isInteger(speed) && speed >= 0) {
+			if(!isNaN(speed) && speed >= 0) {
 				set_state("speed_intra_question", speed);
 			}
 		});
 		subscribe_to_event("EVENT_INTER_BREAK_CHANGED", function(event) {
 			var speed = event["target"].value;
-			if(Number.isInteger(speed) && speed >= 0) {
+			if(!isNaN(speed) && speed >= 0) {
 				set_state("speed_inter_question", speed);
 			}
 		});
