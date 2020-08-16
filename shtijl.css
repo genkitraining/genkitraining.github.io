@@ -6,4 +6,4 @@ h1 { font-size: 4rem; }
 #wrapper { width: 960px; margin: 0 auto; }
 #instellingen, #uitleg, #over { display: none; }
 .hidden_bullets li { list-style: none; }
-
+#knopjes { display: grid; place-items: center; }
