@@ -118,6 +118,7 @@
 			var index = get_state("current_index");
 			if(dict.length <= index) {
 				document.getElementById("vraag").innerHTML = "Afgelopen.";
+				new_event("EVENT_STOP_QANDA");
 				return;
 			}
 
