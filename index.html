@@ -106,6 +106,8 @@
 		subscribe_to_event("EVENT_STOP_QANDA", function(event) {
 			set_state("current_dict", {});
 			set_state("current_index", 0);
+			document.getElementById("vraag").innerHTML = "Druk op start";
+			document.getElementById("antwoord").innerHTML = "";
 		});
 
 		subscribe_to_event("EVENT_NEXT_QUESTION", function(event) {
