@@ -16,3 +16,17 @@ function set_state(state_name, value) {
 		state[state_name] = value;
 	}
 }
+
+// Returns the key names of keys starting
+// with the prefix given as argument that
+// reside in the state
+function get_state_prefix(prefix) {
+	var entries_starting_with = [];
+	for(const [k, v] of Object.entries(state)) {
+		if(k.startsWith(prefix)) {
+			entries_starting_with.push(k);
+		}
+	}
+	
+	return entries_starting_with;
+}

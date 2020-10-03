@@ -21,6 +21,17 @@
 		init_explanation_view();
 		init_qanda_view();
 		init_controls_view();
+		init_kanji_explanation_view();
+	}
+
+	function get_chapter_count() {
+		// Lazy loading
+		if(! get_state("aantal_ht")) {
+			var chapters = get_state_prefix("genki_ht");
+			set_state("aantal_ht", chapters.length);
+			plog("Aantal hoofdstukken: " + get_state("aantal_ht"));
+		}
+		return get_state("aantal_ht");
 	}
 
 	// Firefox remembers my checkboxes across reloads :(
@@ -86,6 +97,36 @@
 		subscribe_to_event("EVENT_TOGGLE_EXPLANATION_VIEW", function(event) {
 			toggle_display("uitleg");
 		});
+	}
+
+	function init_kanji_explanation_view() {
+		subscribe_to_event("EVENT_TOGGLE_KANJI_EXPLANATION_VIEW", function(event) {
+			toggle_display("kanji_overzicht");
+		});
+
+		var kanji_div = document.getElementById("kanji_overzicht");
+		var dict_names = get_state_prefix("genki_ht");
+		for(var chapter_name in dict_names) {
+			var chapter_numeric = dict_names[chapter_name].match(/\d+/)[0];
+			var chapter_h3 = document.createElement("h3");
+			chapter_h3.innerHTML = "Hoofdstuk " + chapter_numeric;
+			kanji_div.appendChild(chapter_h3);
+
+			var chapter_list = document.createElement("ul");
+			chapter_list.className = "chapter_words";
+			chapter_words = get_state(dict_names[chapter_name]);
+			console.log(chapter_words);
+			for(var i in chapter_words) {
+			for(const [k,v] of Object.entries(chapter_words[i])) {
+				if(k == "kanji") {
+					var kanji_item = document.createElement("li");
+					kanji_item.innerHTML = v;
+					chapter_list.appendChild(kanji_item);
+				}
+			}
+			}
+			kanji_div.appendChild(chapter_list);
+		}
 	}
 
 	function init_qanda_view() {
@@ -231,6 +272,7 @@
 		<ul id="menu">
 			<li><a href="#" onclick="new_event('EVENT_TOGGLE_SETTINGS_VIEW');">Instellingen</a></li>
 			<li><a href="#" onclick="new_event('EVENT_TOGGLE_EXPLANATION_VIEW');">Hoe werkt dit?</a></li>
+			<li><a href="#" onclick="new_event('EVENT_TOGGLE_KANJI_EXPLANATION_VIEW');">Kanji overzicht</a></li>
 		</ul>
 	</div>
 	<div id="inhoud">
@@ -287,6 +329,8 @@
 		</div>
 		<div id="uitleg">
 			<p>De bedoeling is dat je een "vraag" en "antwoord" selecteert in de instellingen. De vraag wordt op het scherm getoond of afgespeeld (indien geluid). Na enkele seconden komt het antwoord in beeld (of wordt dit afgespeeld indien geluid). Het is de bedoeling dat je na het starten geen muisklikken meer hoeft te doen en zodoende kan je met pen en papier de Kanji tekenen volgens het tempo dat je hebt ingesteld.<br/>Geluid heb ik nog niet als input geïmplementeerd, komt hopelijk later nog.</p>
+		</div>
+		<div id="kanji_overzicht">
 		</div>
 		<div id="vraag_en_antwoord">
 			<h1 id="vraag">Druk op start.<br/><span style="font-size: 14px;">(Na de instellingen aan te passen)</span></h1>
