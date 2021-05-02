@@ -105,7 +105,7 @@ set_state("genki_ht12", [
 	},
 	{
 		"nederlands": "een kleur",
-		"francais": "une couleur"
+		"francais": "une couleur",
 		"english": "colour",
 		"romaji": ["shiki, shoku", "iro"],
 		"hiragana": ["しき、しょく", "いろ"],
