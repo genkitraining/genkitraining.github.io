@@ -11,7 +11,7 @@ set_state("genki_ht13", [
 		"nederlands": "een vogel",
 		"francais": "une oiseau",
 		"english": "bird",
-		"romaji": ["chou"; "tori"],
+		"romaji": ["chou", "tori"],
 		"hiragana": ["ちょう", "とり"],
 		"kanji": "鳥"
 	},
