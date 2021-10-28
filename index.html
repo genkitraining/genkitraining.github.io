@@ -124,6 +124,7 @@
 			for(const [k,v] of Object.entries(chapter_words[i])) {
 				if(k == "kanji") {
 					var kanji_item = document.createElement("li");
+					kanji_item.lang = "ja";
 					kanji_item.innerHTML = v;
 					chapter_list.appendChild(kanji_item);
 				}
@@ -170,6 +171,9 @@
 			}
 
 			document.getElementById("vraag").innerHTML = dict[index][get_state("question_type")];
+			if(get_state("question_type") == "kanji") {
+				document.getElementById("vraag").lang = "ja";
+			}
 			plog("jajajaja");
 			setTimeout(() => { new_event("EVENT_ANSWER_TIME"); }, get_state("speed_intra_question") * 1000);
 		});
@@ -184,6 +188,9 @@
 			var index = get_state("current_index");
 			plog(index);
 			document.getElementById("antwoord").innerHTML = dict[index][get_state("answer_type")];
+			if(get_state("answer_type") == "kanji") {
+				document.getElementById("antwoord").lang = "ja";
+			}
 			setTimeout(() => { new_event("EVENT_NEW_QUESTION_TIME"); }, get_state("speed_inter_question") * 1000);
 		});
 
