@@ -21,5 +21,6 @@ var radical_explanations = {
 "疒":"sickness radical",
 "巾":"towel, hanging scroll radical",
 "尸":"corpse/flag radical",
-"广":"house on cliff radical"
+"广":"house on cliff radical",
+"氵":"splash of water"
 };
