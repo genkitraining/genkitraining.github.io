@@ -86,6 +86,11 @@ function show_genki2_kanji() {
 	show_kanjis(genki2_kanji);
 }
 
+function show_genki2_extended_kanji() {
+	show_kanjis(genki2_extended_kanji);
+}
+
+
 function show_kanjis(kanji_list) {
 	var ch_index = 0;
 	var kanji_counter = 0;
@@ -141,6 +146,7 @@ function get_radical_explanation(radical) {
 	<li><a href="javascript:show_genki1_kanji();">Genki 1</a></li>
 	<li><a href="javascript:show_genki1_extended_kanji();">Genki 1 Extended</a></li>
 	<li><a href="javascript:show_genki2_kanji();">Genki 2</a></li>
+	<li><a href="javascript:show_genki2_extended_kanji();">Genki 2 Extended</a></li>
 </ul>
 <input id="kanji_input" type="text" lang="ja" placeholder="Enter a Kanji" />
 <button onclick="lookup_kanji()">Lookup Kanji</button>
@@ -158,5 +164,6 @@ function get_radical_explanation(radical) {
 <script type="text/javascript" src="genki1_kanji.js"></script>
 <script type="text/javascript" src="genki2_kanji.js"></script>
 <script type="text/javascript" src="genki1_extended_kanji.js"></script>
+<script type="text/javascript" src="genki2_extended_kanji.js"></script>
 </body>
 </html>
