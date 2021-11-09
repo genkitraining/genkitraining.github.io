@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+body { background-color: #dcdcfe; }
+table { border: 1px solid black; }
+td { border: 1px dotted black; }
+.radical { font-size: 10em; }
+</style>
+<script type="text/javascript">
+function lookup_kanji() {
+	var kanji_value = document.getElementById("kanji_input").value;
+	var table = create_kanji_table(kanji_value, get_gif_location(kanji_value), get_kanji_explanation(kanji_value));
+	// Add table to HTML
+	document.getElementById("explanation").innerHTML = table;
+}
+
+function create_kanji_table(kanji, gif, explanation) {
+	var keyword = explanation[0];
+	var meaning = explanation[1];
+	var koohii1 = explanation[2];
+	var koohii2 = explanation[3];
+	var onyomi = explanation[4];
+	var kunyomi = explanation[5];
+	var onwords = explanation[6];
+	var kunwords = explanation[7];
+	var html = '<table>\
+		<tr>\
+			<td rowspan="2" class="kanji_pic"><img src="' + gif + '" /></td>\
+			<td lang="ja" class="onyomi">' + onyomi + '</td>\
+			<td lang="ja" class="kunyomi">' + kunyomi + '</td>\
+		</tr>\
+		<tr>\
+			<td rowspan="2" lang="ja" class="onwords">' + onwords + '</td>\
+			<td rowspan="2" lang="ja" class="kunwords">' + kunwords + '</td>\
+		</tr>\
+		<tr>\
+			<td class="keyword">' + keyword + '</td>\
+		</tr>\
+		<tr>\
+			<td rowspan="2" class="meaning">' + meaning + '</td>\
+			<td colspan="2" class="koohii">' + koohii1 + '</td>\
+		</tr>\
+		<tr>\
+			<td colspan="2" class="koohii">' + koohii2 + '</td>\
+		</tr>\
+\
+	</table>';
+	return html;
+}
+
+function create_radical_table(radical, explanation) {
+	var html = '<table>\
+		<tr>\
+			<td lang="ja" class="radical">' + radical + '</td>\
+		</tr>\
+		<tr>\
+			<td class="meaning">' + explanation + '</td>\
+		</tr>\
+	</table>';
+	return html;
+}
+
+function get_gif() {
+	var kanji_value = document.getElementById("kanji_input").value;
+	var gifje = document.createElement('img');
+	gifje.src = get_gif_location(kanji_value);
+	document.getElementById("gif").appendChild(gifje);
+
+}
+
+function get_gif_location(kanji) {
+	return "images/" + gif_lookup[kanji] + ".gif";
+}
+
+function show_genki1_kanji() {
+	show_kanjis(genki1_kanji);
+}
+
+function show_genki1_extended_kanji() {
+	show_kanjis(genki1_extended_kanji);
+}
+
+function show_kanjis(kanji_list) {
+	var ch_index = 0;
+	var kanji_counter = 0;
+	var radical_counter = 0;
+	kanji_list.forEach(function(chapter) {
+		if(chapter) {
+			var title = document.createElement("h2");
+			title.innerHTML = "Chapter " + ch_index;
+			document.getElementById("explanation").appendChild(title);
+			chapter.forEach(function(i) {
+				var table_wrapper;
+				if(is_radical(i)) {
+					var radical_table = create_radical_table(i, get_radical_explanation(i));
+					table_wrapper = document.createElement('div');
+					table_wrapper.innerHTML = radical_table;
+					radical_counter++;
+				} else {
+					var kanji_table = create_kanji_table(i, get_gif_location(i), get_kanji_explanation(i));
+					table_wrapper = document.createElement('div');
+					table_wrapper.innerHTML = kanji_table;
+					kanji_counter++;
+				}
+				document.getElementById("explanation").appendChild(table_wrapper);
+			});
+		}
+		ch_index++;
+	});
+	var kanji_total = document.createElement('p');
+	kanji_total.innerHTML = "You now know " + kanji_counter + " kanji and " + radical_counter + " radicals!";
+	document.getElementById("explanation").appendChild(kanji_total);
+
+}
+
+function get_kanji_explanation(kanji) {
+	return kanji_explanations[kanji];
+}
+
+function is_radical(radical) {
+	if(radical in radical_explanations) {
+		return true;
+	}
+	return false;
+}
+
+function get_radical_explanation(radical) {
+	return radical_explanations[radical];
+}
+</script>
+</head>
+<body>
+<h1>Hallo</h1>
+<ul>
+	<li><a href="javascript:show_genki1_kanji();">Genki 1</a></li>
+	<li><a href="javascript:show_genki1_extended_kanji();">Genki 1 Extended</a></li>
+	<li>Genki 2</li>
+</ul>
+<input id="kanji_input" type="text" lang="ja" placeholder="Enter a Kanji" />
+<button onclick="lookup_kanji()">Lookup Kanji</button>
+<button onclick="get_gif()">Get Kanji GIF</button>
+<div id="gif">
+
+</div>
+<div id="explanation">
+
+</div>
+<!-- Heavy Javascript database files in JSON -->
+<script type="text/javascript" src="gif_lookup.js"></script>
+<script type="text/javascript" src="explanations.js"></script>
+<script type="text/javascript" src="radical_explanations.js"></script>
+<script type="text/javascript" src="genki1_kanji.js"></script>
+<script type="text/javascript" src="genki1_extended_kanji.js"></script>
+</body>
+</html>
